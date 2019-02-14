@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/AndrewScibek/wtf/rollbar"
 	"github.com/gdamore/tcell"
 	"github.com/olebedev/config"
 	"github.com/pkg/profile"
@@ -248,6 +249,8 @@ func addWidget(app *tview.Application, pages *tview.Pages, widgetName string) {
 		widgets = append(widgets, todoist.NewWidget(app, pages))
 	case "travisci":
 		widgets = append(widgets, travisci.NewWidget(app, pages))
+	case "rollbar":
+		widgets = append(widgets, rollbar.NewWidget(app, pages))
 	case "trello":
 		widgets = append(widgets, trello.NewWidget(app))
 	case "twitter":
