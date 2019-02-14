@@ -10,6 +10,7 @@ type Item struct {
 	Status           string `json:"status"`
 	TotalOccurrences int    `json:"total_occurrences"`
 	Level            string `json:"level"`
+	ID               int    `json:"counter"`
 }
 type Result struct {
 	Items []Item `json:"items"`

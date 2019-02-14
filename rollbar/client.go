@@ -12,23 +12,18 @@ import (
 	"github.com/wtfutil/wtf/wtf"
 )
 
-var ROLLBAR_HOST = map[bool]string{
-	false: "travis-ci.org",
-	true:  "travis-ci.com",
-}
-
 func ItemsFor() (*ActiveItems, error) {
 	items := &ActiveItems{}
 
-	access_token := wtf.Config.UString("wtf.mods.rollbar.access_token", "")
-	rollbarAPIURL.Host = "api.rollbar.com/api/1/items"
-
-	resp, err := rollbarItemRequest(access_token)
+	accessToken := wtf.Config.UString("wtf.mods.rollbar.accessToken", "")
+	rollbarAPIURL.Host = "api.rollbar.com"
+	rollbarAPIURL.Path = "/api/1/items"
+	resp, err := rollbarItemRequest(accessToken)
 	if err != nil {
 		return items, err
 	}
 
-	parseJson(&items, resp.Body)
+	parseJSON(&items, resp.Body)
 
 	return items, nil
 }
@@ -36,17 +31,16 @@ func ItemsFor() (*ActiveItems, error) {
 /* -------------------- Unexported Functions -------------------- */
 
 var (
-	rollbarAPIURL = &url.URL{Scheme: "https", Path: "/"}
+	rollbarAPIURL = &url.URL{Scheme: "https"}
 )
 
-func rollbarItemRequest(access_token string) (*http.Response, error) {
+func rollbarItemRequest(accessToken string) (*http.Response, error) {
 	params := url.Values{}
-	params.Add("access_token", access_token)
+	params.Add("access_token", accessToken)
 	params.Add("status", "active")
 
-	requestUrl := rollbarAPIURL.ResolveReference(&url.URL{RawQuery: params.Encode()})
-
-	req, err := http.NewRequest("GET", requestUrl.String(), nil)
+	requestURL := rollbarAPIURL.ResolveReference(&url.URL{RawQuery: params.Encode()})
+	req, err := http.NewRequest("GET", requestURL.String(), nil)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 
@@ -63,7 +57,7 @@ func rollbarItemRequest(access_token string) (*http.Response, error) {
 	return resp, nil
 }
 
-func parseJson(obj interface{}, text io.Reader) {
+func parseJSON(obj interface{}, text io.Reader) {
 	jsonStream, err := ioutil.ReadAll(text)
 	if err != nil {
 		panic(err)

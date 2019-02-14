@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/AndrewScibek/wtf/rollbar"
 	"github.com/gdamore/tcell"
 	"github.com/olebedev/config"
 	"github.com/pkg/profile"
@@ -47,6 +46,7 @@ import (
 	"github.com/wtfutil/wtf/pagerduty"
 	"github.com/wtfutil/wtf/power"
 	"github.com/wtfutil/wtf/resourceusage"
+	"github.com/wtfutil/wtf/rollbar"
 	"github.com/wtfutil/wtf/security"
 	"github.com/wtfutil/wtf/spotify"
 	"github.com/wtfutil/wtf/spotifyweb"

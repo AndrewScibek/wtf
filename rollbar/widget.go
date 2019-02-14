@@ -35,7 +35,6 @@ func NewWidget(app *tview.Application, pages *tview.Pages) *Widget {
 		HelpfulWidget: wtf.NewHelpfulWidget(app, pages, HelpText),
 		TextWidget:    wtf.NewTextWidget(app, "Rollbar", "rollbar", true),
 	}
-
 	widget.HelpfulWidget.SetView(widget.View)
 	widget.unselect()
 
@@ -58,7 +57,7 @@ func (widget *Widget) Refresh() {
 		widget.View.SetTitle(widget.Name)
 		widget.View.SetText(err.Error())
 	} else {
-		widget.items = items
+		widget.items = &items.Results
 	}
 
 	widget.display()
@@ -73,22 +72,27 @@ func (widget *Widget) display() {
 
 	widget.View.SetWrap(false)
 
-	widget.View.SetTitle(widget.ContextualTitle(fmt.Sprintf("%s - Builds", widget.Name)))
+	widget.View.SetTitle(widget.ContextualTitle(fmt.Sprintf("%s - Items", widget.Name)))
 	widget.View.SetText(widget.contentFrom(widget.items))
 }
 
 func (widget *Widget) contentFrom(result *Result) string {
 	var str string
+	count := wtf.Config.UInt("wtf.mods.rollbar.count", 10)
+	if len(result.Items) > count {
+		result.Items = result.Items[:count]
+	}
 	for idx, item := range result.Items {
 
 		str = str + fmt.Sprintf(
-			"[%s] [%s] %s %s (%s) [%s]%s\n",
+			"[%s] [%s] %s %s [%s]count: %d [%s]%s\n",
 			widget.rowColor(idx),
 			buildColor(&item),
 			item.Title,
 			item.Level,
-			item.TotalOccurrences,
 			widget.rowColor(idx),
+			item.TotalOccurrences,
+			"blue",
 			item.Environment,
 		)
 	}
@@ -127,10 +131,11 @@ func (widget *Widget) prev() {
 
 func (widget *Widget) openBuild() {
 	sel := widget.selected
+	userName := wtf.Config.UString("wtf.mods.rollbar.userName", "")
+	projectName := wtf.Config.UString("wtf.mods.rollbar.projectName", "")
 	if sel >= 0 && widget.items != nil && sel < len(widget.items.Items) {
-		build := &widget.items.Items[widget.selected]
-		travisHost := TRAVIS_HOSTS[wtf.Config.UBool("wtf.mods.travisci.pro", false)]
-		//wtf.OpenFile(fmt.Sprintf("https://%s/%s/%s/%d", travisHost, build.Repository.Slug, "builds", build.ID))
+		item := &widget.items.Items[widget.selected]
+		wtf.OpenFile(fmt.Sprintf("https://rollbar.com/%s/%s/%s/%d", userName, projectName, "items", item.ID))
 	}
 }
 
