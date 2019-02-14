@@ -9,17 +9,18 @@ import (
 )
 
 const HelpText = `
- Keyboard commands for Travis CI:
+ Keyboard commands for Rollbar:
 
    /: Show/hide this help window
-   j: Select the next build in the list
-   k: Select the previous build in the list
+   j: Select the next item in the list
+   k: Select the previous item in the list
    r: Refresh the data
+   u: unselect the current item(removes item being perma highlighted)
 
-   arrow down: Select the next build in the list
-   arrow up:   Select the previous build in the list
+   arrow down: Select the next item in the list
+   arrow up:   Select the previous item in the list
 
-   return: Open the selected build in a browser
+   return: Open the selected item in a browser
 `
 
 type Widget struct {
@@ -50,7 +51,7 @@ func (widget *Widget) Refresh() {
 		return
 	}
 
-	items, err := ItemsFor()
+	items, err := CurrentActiveItems()
 
 	if err != nil {
 		widget.View.SetWrap(true)
@@ -104,11 +105,18 @@ func (widget *Widget) rowColor(idx int) string {
 	if widget.View.HasFocus() && (idx == widget.selected) {
 		return wtf.DefaultFocussedRowColor()
 	}
-	return "White"
+	return "white"
 }
 
 func buildColor(item *Item) string {
-	return "red"
+	switch item.Status {
+	case "active":
+		return "red"
+	case "resolved":
+		return "green"
+	default:
+		return "red"
+	}
 }
 
 func (widget *Widget) next() {
@@ -131,11 +139,11 @@ func (widget *Widget) prev() {
 
 func (widget *Widget) openBuild() {
 	sel := widget.selected
-	userName := wtf.Config.UString("wtf.mods.rollbar.userName", "")
+	projectOwner := wtf.Config.UString("wtf.mods.rollbar.projectOwner", "")
 	projectName := wtf.Config.UString("wtf.mods.rollbar.projectName", "")
 	if sel >= 0 && widget.items != nil && sel < len(widget.items.Items) {
 		item := &widget.items.Items[widget.selected]
-		wtf.OpenFile(fmt.Sprintf("https://rollbar.com/%s/%s/%s/%d", userName, projectName, "items", item.ID))
+		wtf.OpenFile(fmt.Sprintf("https://rollbar.com/%s/%s/%s/%d", projectOwner, projectName, "items", item.ID))
 	}
 }
 
@@ -156,6 +164,9 @@ func (widget *Widget) keyboardIntercept(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case "r":
 		widget.Refresh()
+		return nil
+	case "u":
+		widget.unselect()
 		return nil
 	}
 

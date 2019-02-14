@@ -12,7 +12,7 @@ import (
 	"github.com/wtfutil/wtf/wtf"
 )
 
-func ItemsFor() (*ActiveItems, error) {
+func CurrentActiveItems() (*ActiveItems, error) {
 	items := &ActiveItems{}
 
 	accessToken := wtf.Config.UString("wtf.mods.rollbar.accessToken", "")
@@ -37,7 +37,12 @@ var (
 func rollbarItemRequest(accessToken string) (*http.Response, error) {
 	params := url.Values{}
 	params.Add("access_token", accessToken)
-	params.Add("status", "active")
+	userName := wtf.Config.UString("wtf.mods.rollbar.assignedToName", "")
+	params.Add("assigned_user", userName)
+	active := wtf.Config.UBool("wtf.mods.rollbar.activeOnly", false)
+	if active {
+		params.Add("status", "active")
+	}
 
 	requestURL := rollbarAPIURL.ResolveReference(&url.URL{RawQuery: params.Encode()})
 	req, err := http.NewRequest("GET", requestURL.String(), nil)
